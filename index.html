@@ -174,7 +174,7 @@
   </section>
 </main>
 
-<audio id="bgm" src="audio/ana_inst.mp3" loop preload="none"></audio>
+<audio id="bgm" loop preload="none"></audio>
 <button type="button" class="player" id="music" aria-label="배경음악 재생"><span aria-hidden="true">▶</span><span class="meter" aria-hidden="true"></span></button>
 <footer>Ash-832</footer>
 
@@ -245,6 +245,8 @@
     },{once:true});
   });
   const song=document.getElementById('bgm');
+  const tracks=['audio/ana_inst.mp3'];
+  song.src=tracks[Math.floor(Math.random()*tracks.length)];
   const music=document.getElementById('music');
   const meter=music.querySelector('.meter');
   const bars=Array.from({length:12},()=>meter.appendChild(document.createElement('i')));
