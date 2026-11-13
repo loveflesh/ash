@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>아이리 Airi · OC Profile</title>
+<title>ASH</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
   :root{
@@ -125,6 +125,10 @@
     .dust i,body::before,.swapping .figures,.swapping .info{animation:none}
     .figures,.info,.fig{transition:none}
   }
+  .player{position:fixed;bottom:12px;left:18px;z-index:3;display:flex;align-items:center;gap:8px;color:#b4b4b4;background:#171717;border:1px solid #494949;border-radius:20px;padding:5px 12px;min-height:36px;cursor:pointer}
+  .player:focus-visible{outline:2px solid #bbb;outline-offset:3px}
+  .meter{display:flex;align-items:flex-end;gap:2px;height:13px}
+  .meter i{display:block;width:2px;height:13px;background:currentColor;transform:scaleY(.12);transform-origin:bottom}
 </style>
 </head>
 <body>
@@ -170,7 +174,9 @@
   </section>
 </main>
 
-<footer>© Ash832</footer>
+<audio id="bgm" src="audio/ana_inst.mp3" loop preload="none"></audio>
+<button type="button" class="player" id="music" aria-label="배경음악 재생"><span aria-hidden="true">▶</span><span class="meter" aria-hidden="true"></span></button>
+<footer>Ash-832</footer>
 
 <script>
   // ---------- 빛먼지 생성 (사방으로 떠다니는 입자) ----------
@@ -235,6 +241,50 @@
       img.src='data:image/svg+xml;utf8,'+encodeURIComponent(svg);
     },{once:true});
   });
+  const song=document.getElementById('bgm');
+  const music=document.getElementById('music');
+  const meter=music.querySelector('.meter');
+  const bars=Array.from({length:12},()=>meter.appendChild(document.createElement('i')));
+  let context, analyser, spectrum, frame;
+  const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
+  function drawMeter(){
+    if(song.paused || !analyser || reducedMotion.matches) return;
+    analyser.getByteFrequencyData(spectrum);
+    bars.forEach((bar,i)=>{
+      const bin=Math.min(spectrum.length-1,Math.round(2*Math.pow(1.65,i)));
+      bar.style.transform='scaleY('+Math.max(.12,spectrum[bin]/255)+')';
+    });
+    frame=requestAnimationFrame(drawMeter);
+  }
+  function syncMusic(){
+    cancelAnimationFrame(frame);
+    const playing=!song.paused;
+    music.firstElementChild.textContent=playing?'Ⅱ':'▶';
+    music.setAttribute('aria-label',playing?'배경음악 일시정지':'배경음악 재생');
+    bars.forEach(bar=>bar.style.removeProperty('transform'));
+    if(playing) drawMeter();
+  }
+  music.addEventListener('click',async()=>{
+    if(!song.paused){song.pause();return}
+    try{
+      if(!context && window.AudioContext && location.protocol!=='file:'){
+        context=new AudioContext();
+        analyser=context.createAnalyser();
+        analyser.fftSize=1024;
+        spectrum=new Uint8Array(analyser.frequencyBinCount);
+        context.createMediaElementSource(song).connect(analyser).connect(context.destination);
+      }
+      if(context?.state==='suspended') await context.resume();
+      await song.play();
+      music.removeAttribute('title');
+    }catch{
+      music.title='음악을 불러오지 못했어. 다시 눌러 재생해 줘.';
+      syncMusic();
+    }
+  });
+  song.addEventListener('playing',syncMusic);
+  song.addEventListener('pause',syncMusic);
+  reducedMotion.addEventListener('change',syncMusic);
 </script>
 </body>
 </html>
