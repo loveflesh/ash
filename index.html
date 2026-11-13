@@ -90,12 +90,12 @@
   .fig img{height:100%;width:100%;display:block;pointer-events:none}
   .fig.front{left:0}
   .fig.back{right:0}
-  .fig.active{
+  .fig.active{pointer-events:none;
     --sc:1.03;z-index:3;
     filter:brightness(1);
   }
-  .fig:hover{--y:-8px;filter:brightness(.40)}
-  .fig.active:hover{filter:brightness(1)}
+  .fig:enabled:hover{--y:-8px;filter:brightness(.40)}
+
   .fig:focus-visible{outline:1px dashed var(--muted);outline-offset:6px}
 
   /* 정보 */
@@ -138,7 +138,7 @@
 <main class="wrap" id="wrap">
   <!-- 전신 -->
   <div class="figures" id="figures">
-    <button class="fig front active" data-target="basic" aria-label="앞모습 — 기본 프로필 보기">
+    <button disabled class="fig front active" data-target="basic" aria-label="앞모습 — 기본 프로필 보기">
       <img src="images/front.png" alt="아이리 앞모습" data-ph="FRONT">
     </button>
     <button class="fig back" data-target="secret" aria-label="뒷모습 — 비설 보기">
@@ -222,7 +222,10 @@
     busy=true;current=target;
     wrap.classList.toggle('is-back',target==='secret');
     wrap.classList.add('swapping');
-    figs.forEach(f=>f.classList.toggle('active',f.dataset.target===target));
+    figs.forEach(f=>{
+      f.disabled=f.dataset.target===target;
+      f.classList.toggle('active',f.disabled);
+    });
     // 가장 흐려진 순간에 내용 교체
     setTimeout(()=>panels.forEach(p=>p.classList.toggle('show',p.id===target)),460);
     setTimeout(()=>{wrap.classList.remove('swapping');busy=false},1250);
